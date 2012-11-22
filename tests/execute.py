@@ -64,3 +64,8 @@ class TestExecution(unittest.TestCase):
     self.assertEqual(ctx[ECX], CALLRESULT(ECX, 0xdeadbeef, 0xb0000000))
     self.assertEqual(ctx[EFLAGS], CALLRESULT(EFLAGS, 0xdeadbeef, 0xb0000000))
     self.assertEqual(ctx[ESP], ESP-4)
+
+  def test_movzx(self):
+    ctx = {}
+    execute_instruction(Movzx(EAX, AH), ctx)
+    self.assertEqual(ctx[EAX], (EAX & 0xff00) >> 8)

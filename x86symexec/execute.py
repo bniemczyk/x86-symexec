@@ -50,6 +50,16 @@ def execute_instruction(ist, context):
     src = _get_src_value(vals.b, context)
     _set_big_reg(vals.a, src)
 
+  # TODO: figure out how to handle movsx correctly
+  elif ist.match(Movsx(a, b), vals) or ist.match(Movzx(a, b), vals):
+    src = _get_src_value(vals.b, context)
+    if vals.a in (AX,BX,CX,DX,SP,BP,DI,SI):
+      _set_big_reg(symath.symbols('E' + vals.a.name), src)
+    elif vals.a in (EAX,EBX,ECX,EDX,EBP,ESP,EDI,ESI):
+      _set_big_reg(vals.a, src)
+    else:
+      raise BaseException('unknown destination %s for extended mov' % (vals.a,))
+
   elif ist.match(Push(a), vals):
     src = _get_src_value(vals.a, context)
     esp = _get_dst_value(ESP, context) - 4
