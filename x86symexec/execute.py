@@ -14,13 +14,13 @@ def _get_src_value(op, context):
   a,b = symath.wilds('a b')
   vals = symath.WildResults()
 
-  op = op.substitute(context)
+  op = op.substitute(context).simplify()
 
   if op.match(DEREF(a, b), vals):
     if op in context:
-      return context[op]
+      return context[op].simplify()
 
-  return op
+  return op.simplify()
 
 def _get_dst_value(op, context):
   return _get_src_value(op, context)
@@ -32,21 +32,21 @@ def execute_instruction(ist, context):
   def _set_big_reg(dst, src):
     if dst in (AX,BX,CX,DX,SI,DI,BP,SP):
       edst = symath.symbols('E' + dst.name)
-      context[edst] = (edst.substitute(context) & 0xffff0000) | src
+      context[edst.simplify()] = ((edst.substitute(context) & 0xffff0000) | src).simplify()
     elif dst in (AL,BL,CL,DL):
       edst = symath.symbols('E' + dst.name[0] + 'X')
-      context[edst] = (edst.substitute(context) & 0xffffff00) | src
+      context[edst.simplify()] = ((edst.substitute(context) & 0xffffff00) | src).simplify()
     elif dst in (AH,BH,CH,DH):
       edst = symath.symbols('E' + dst.name[0] + 'X')
-      context[edst] = (edst.substitute(context) & 0xffff00ff) | (src << 8)
+      context[edst.simplify()] = ((edst.substitute(context) & 0xffff00ff) | (src << 8)).simplify()
     elif dst.match(DEREF(a, b)):
       regsonly = {}
       for k in context:
         if not k.match(DEREF(a, b)):
           regsonly[k] = context[k]
-      context[dst.substitute(regsonly)] = src
+      context[dst.substitute(regsonly).simplify()] = src.simplify()
     else:
-      context[dst] = src
+      context[dst.simplify()] = src.simplify()
 
   # and our giant switch statement, you knew there had to be one ;)
   if ist.match(Mov(a, b), vals):
@@ -64,14 +64,14 @@ def execute_instruction(ist, context):
 
   elif ist.match(Push(a), vals):
     src = _get_src_value(vals.a, context)
-    esp = _get_dst_value(ESP, context) - 4
+    esp = (_get_dst_value(ESP, context) - 4).simplify()
     context[DEREF(0x4, esp)] = src
     context[ESP] = esp
 
   elif ist.match(Pop(a), vals):
     dst = _get_dst_value(vals.a, context)
     src = _get_src_value(DEREF(0x4, ESP), context)
-    esp = _get_dst_value(ESP, context) + 4
+    esp = (_get_dst_value(ESP, context) + 4).simplify()
     _set_big_reg(dst, src)
     context[ESP] = esp
 
