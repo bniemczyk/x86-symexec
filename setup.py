@@ -4,7 +4,7 @@ from setuptools import setup
 
 _depends = \
 '''
-symath >= 0.1.12, == git
+symath == git
 distorm3
 '''
 

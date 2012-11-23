@@ -43,6 +43,12 @@ def execute_instruction(ist, context):
     elif dst in (AH,BH,CH,DH):
       edst = symath.symbols('E' + dst.name[0] + 'X')
       context[edst] = (edst.substitute(context) & 0xffff00ff) | (src << 8)
+    elif dst.match(DEREF(a, b)):
+      regsonly = {}
+      for k in context:
+        if not k.match(DEREF(a, b)):
+          regsonly[k] = context[k]
+      context[dst.substitute(regsonly)] = src
     else:
       context[dst] = src
 
@@ -59,6 +65,10 @@ def execute_instruction(ist, context):
       _set_big_reg(vals.a, src)
     else:
       raise BaseException('unknown destination %s for extended mov' % (vals.a,))
+
+  elif ist.match(Lea(a, DEREF(b, c)), vals):
+    src = _get_src_value(vals.c, context)
+    _set_big_reg(vals.a, src)
 
   elif ist.match(Push(a), vals):
     src = _get_src_value(vals.a, context)

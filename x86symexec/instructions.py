@@ -7,7 +7,8 @@ Mov = symbols('mov')
 Movzx = symbols('movzx')
 Movsx = symbols('movsx')
 Push = symbols('push')
-Pop = symbols('Pop')
+Pop = symbols('pop')
+Lea = symbols('lea')
 
 # arithmetic operations
 Sub = symbols('sub')

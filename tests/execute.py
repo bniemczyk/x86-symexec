@@ -69,3 +69,8 @@ class TestExecution(unittest.TestCase):
     ctx = {}
     execute_instruction(Movzx(EAX, AH), ctx)
     self.assertEqual(ctx[EAX], (EAX & 0xff00) >> 8)
+
+  def test_lea(self):
+    ctx = {}
+    execute_instruction(Lea(EAX, DEREF(0x4, EAX + 4)), ctx)
+    self.assertEqual(ctx[EAX], EAX + 4)
