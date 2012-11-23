@@ -67,8 +67,17 @@ class TestExecution(unittest.TestCase):
 
   def test_movzx(self):
     ctx = {}
+    execute_instruction(Mov(AH, 0xfe), ctx)
+    self.assertEqual(ctx[EAX], (EAX & 0xffff00ff) | 0xfe00)
     execute_instruction(Movzx(EAX, AH), ctx)
-    self.assertEqual(ctx[EAX], (EAX & 0xff00) >> 8)
+    self.assertEqual(ctx[EAX], 0xfe)
+
+  # TODO: this is not yet implemented so skip the test
+  def xtest_movsx(self):
+    ctx = {}
+    execute_instruction(Mov(AH, 0xfe), ctx)
+    execute_instruction(Movsx(EAX, AH), ctx)
+    self.assertEqual(ctx[EAX], 0xfffffffe)
 
   def test_lea(self):
     ctx = {}

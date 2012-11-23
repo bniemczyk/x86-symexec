@@ -8,6 +8,9 @@ def _get_src_value(op, context):
   if isinstance(op, symath.Number):
     return op
 
+  if is_register(op):
+    op = reg_mask(op)
+
   a,b = symath.wilds('a b')
   vals = symath.WildResults()
 
@@ -27,13 +30,6 @@ def execute_instruction(ist, context):
   vals = symath.WildResults()
 
   def _set_big_reg(dst, src):
-    if src in (AX, BX, CX, DX, SI, DI, BP, SP):
-      src = symath.symbols('E' + src.name) & 0xffff
-    elif src in (AL,BL,CL,DL):
-      src = symath.symbols('E' + src.name[0] + 'X') & 0xff
-    elif src in (AH,BH,CH,DH):
-      src = (symath.symbols('E' + src.name[0] + 'X') & 0xff00) >> 8
-
     if dst in (AX,BX,CX,DX,SI,DI,BP,SP):
       edst = symath.symbols('E' + dst.name)
       context[edst] = (edst.substitute(context) & 0xffff0000) | src
@@ -52,19 +48,15 @@ def execute_instruction(ist, context):
     else:
       context[dst] = src
 
+  # and our giant switch statement, you knew there had to be one ;)
   if ist.match(Mov(a, b), vals):
     src = _get_src_value(vals.b, context)
     _set_big_reg(vals.a, src)
 
-  # TODO: figure out how to handle movsx correctly
-  elif ist.match(Movsx(a, b), vals) or ist.match(Movzx(a, b), vals):
+  # TODO: fixup movsx to actually be a signed operation
+  elif ist.match(Movzx(a, b), vals) or ist.match(Movsx(a, b), vals):
     src = _get_src_value(vals.b, context)
-    if vals.a in (AX,BX,CX,DX,SP,BP,DI,SI):
-      _set_big_reg(symath.symbols('E' + vals.a.name), src)
-    elif vals.a in (EAX,EBX,ECX,EDX,EBP,ESP,EDI,ESI):
-      _set_big_reg(vals.a, src)
-    else:
-      raise BaseException('unknown destination %s for extended mov' % (vals.a,))
+    _set_big_reg(vals.a, src)
 
   elif ist.match(Lea(a, DEREF(b, c)), vals):
     src = _get_src_value(vals.c, context)
