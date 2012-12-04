@@ -60,7 +60,13 @@ def decode(ea=None):
 
   if ist.mnemonic.lower() == 'call':
     spdiff = idc.GetSpDiff(ist.address+ist.size)
-    return Call(args[0], spdiff, ist.address)
+    if spdiff == None:
+      spdiff = 0
+    try:
+      return Call(args[0], spdiff, ist.address)
+    except Exception as ex:
+      print 'failed to wrap call @%x' % (ist.address)
+      raise ex
   else:
     return symath.symbolic(ist.mnemonic.lower())(*args)
 
