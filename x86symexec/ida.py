@@ -48,7 +48,7 @@ def decode(ea=None):
       if op.index != None:
         rv += symath.symbols(distorm3.Registers[op.index].upper()) * op.scale
       if op.base != None:
-        rv += symbath.symbols(distorm3.Registers[op.base].upper())
+        rv += symath.symbols(distorm3.Registers[op.base].upper())
       if op.disp != None:
         rv += symath.symbolic(op.disp)
 
